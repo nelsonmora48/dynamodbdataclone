@@ -8,7 +8,7 @@ The source and destiny accounts is determined by the AWS CLI profiles configured
 
 The source and destiny tables are set ina interacte way before the data copy start.
 
-The copy process is done through AWS Python SDK (boto3) using the `scan` operation and wirte using `batch_write_item` operation in 25 items block
+The copy process is done through AWS Python SDK (boto3) using the `scan` operation and write using `batch_write_item` operation in 25 items block
 
 ### Pre-requisites
 
@@ -29,14 +29,14 @@ The copy process is done through AWS Python SDK (boto3) using the `scan` operati
    ```
    cd dynamodbclone
    ```
-3. [Optional] Install ans use virtualenv
+3. [Optional] Install and use virtualenv (recommended)
 
    ```
    pyhton -m venv .venv
    source .venv/bin/activate
    ```
 
-4. Using python virtualenv (recommended)
+4. Installing dependencies
    ```
    pip install -r requirements.txt
    ```
@@ -44,3 +44,5 @@ The copy process is done through AWS Python SDK (boto3) using the `scan` operati
 ### Usage
 
 `python main.py`
+
+The interactive CLI guide you to select the source and destinatn profiles and tables,

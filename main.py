@@ -69,6 +69,7 @@ def execute_migration(src_profile, dst_profile, src_table, dst_table):
     items_quantity = 0
     put_requests = []
     put_request_size = 0
+    put_request_size_total = 0
     for page in pages:
         for item in page["Items"]:
             if sys.getsizeof(item) > 2**10 * 400:  # 2**10*400 == 400 Kb
@@ -85,13 +86,16 @@ def execute_migration(src_profile, dst_profile, src_table, dst_table):
                 response = dst_dynamdb_client.batch_write_item(
                     RequestItems={dst_table: put_requests}
                 )
+                put_request_size_total += put_request_size
                 put_requests = []
                 put_request_size = 0
                 if "UnprocessedItems" in response:
                     if response["UnprocessedItems"] != {}:
                         print(response)
-                print(f"{items_quantity} items copied", end="\r")
-                return
+                print(
+                    f"{items_quantity} items copied, total size {round(put_request_size_total/1024/1024,2)} Mb ",
+                    end="\r",
+                )
 
     # Final Insert
     response = dst_dynamdb_client.batch_write_item(
@@ -116,8 +120,8 @@ def load_from_disk(item: str):
         file_object.close()
         return data
     except Exception as e:
-        print(e)
-        return ""
+        print(f"Creating file {item} for save config")
+        pass
 
 
 if __name__ == "__main__":
@@ -139,11 +143,13 @@ if __name__ == "__main__":
             dst_table = select_dynamo_table(profile["dst"])
 
             if confirm(
-                f"Start data copy\n From [{src_table}] table using [{profile['src']}] profile\n to   [{dst_table}] table using [{profile['dst']}] profile ?"
+                f"Start data copy\n From [{src_table}] table using [{profile['src']}] profile\n to   [{dst_table}] table using [{profile['dst']}] profile\nDo you want proceed ?"
             ):
                 print()
                 print("Starting data copy")
                 execute_migration(profile["src"], profile["dst"], src_table, dst_table)
+                print()
+                print("Ended data copy")
             continue_migration = confirm("Do you want copy data from another table?")
 
     except Exception as e:
