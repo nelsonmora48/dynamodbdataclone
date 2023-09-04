@@ -48,3 +48,7 @@ Thumbs.db
 *.mov
 *.wmv
 
+##
+.venv
+dst_profile
+src_profile
