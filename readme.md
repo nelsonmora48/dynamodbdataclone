@@ -44,8 +44,3 @@ The copy process is done through AWS Python SDK (boto3) using the `scan` operati
 ### Usage
 
 `python main.py`
-
-### To-Do
-
-- Prevent the max 400 Kb size per item
-- Prevent the max 16 Mb per `batch_write_item` operation

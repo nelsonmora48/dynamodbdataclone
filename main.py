@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import boto3
 from simple_term_menu import TerminalMenu
+import sys
+import json
 
 profile = {}
 profile["src"] = ""
@@ -66,8 +68,17 @@ def execute_migration(src_profile, dst_profile, src_table, dst_table):
     pages = src_paginator.paginate(TableName=src_table)
     items_quantity = 0
     put_requests = []
+    put_request_size = 0
     for page in pages:
         for item in page["Items"]:
+            if sys.getsizeof(item) > 2**10 * 400:  # 2**10*400 == 400 Kb
+                raise Exception("Item Size overpass 400 Kb " + json.dumps(item))
+
+            put_request_size += sys.getsizeof(item)
+
+            if put_request_size > 2**20 * 16:  # 2**20*16 == 16 Mb
+                raise Exception("Batch Size operation overpass 16 Mb ")
+
             put_requests.append({"PutRequest": {"Item": item}})
             items_quantity += 1
             if items_quantity % 25 == 0:
@@ -75,12 +86,14 @@ def execute_migration(src_profile, dst_profile, src_table, dst_table):
                     RequestItems={dst_table: put_requests}
                 )
                 put_requests = []
+                put_request_size = 0
                 if "UnprocessedItems" in response:
                     if response["UnprocessedItems"] != {}:
                         print(response)
                 print(f"{items_quantity} items copied", end="\r")
+                return
 
-    # Insert Final
+    # Final Insert
     response = dst_dynamdb_client.batch_write_item(
         RequestItems={dst_table: put_requests}
     )
